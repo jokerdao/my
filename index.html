@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>门禁系统安全登录</title>
+    <title>门禁管理系统</title>
     <style>
         body { 
             font-family: Arial; 
@@ -12,7 +12,7 @@
             height: 100vh;
             margin: 0;
         }
-        .login-box {
+        .auth-box {
             background: white;
             padding: 30px;
             border-radius: 8px;
@@ -37,46 +37,131 @@
             cursor: pointer;
             width: 100%;
             font-size: 16px;
+            margin-top: 10px;
         }
         .logo {
             width: 100px;
             margin-bottom: 20px;
         }
+        .switch-mode {
+            color: #4285f4;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 15px;
+            display: block;
+        }
+        .error-msg {
+            color: red;
+            font-size: 12px;
+            height: 20px;
+        }
     </style>
 </head>
 <body>
-    <div class="login-box">
-        <img src="https://via.placeholder.com/100x100?text=LOGO" class="logo" alt="公司Logo">
-        <h2>门禁管理系统</h2>
+    <div class="auth-box">
+        <img src="https://via.placeholder.com/100x100?text=LOGO" class="logo" alt="门禁系统">
         
-        <input type="text" id="username" placeholder="请输入用户名">
-        <input type="password" id="password" placeholder="请输入密码">
+        <!-- 登录表单 -->
+        <div id="login-form">
+            <h2>用户登录</h2>
+            <input type="text" id="loginUser" placeholder="用户名">
+            <input type="password" id="loginPwd" placeholder="密码">
+            <div class="error-msg" id="loginError"></div>
+            <button onclick="login()">登 录</button>
+            <a class="switch-mode" onclick="showForm('register')">没有账号？立即注册</a>
+        </div>
         
-        <button onclick="login()">登 录</button>
-        
-        <p style="color:red; font-size:12px;" id="error-msg"></p>
+        <!-- 注册表单 -->
+        <div id="register-form" style="display:none;">
+            <h2>用户注册</h2>
+            <input type="text" id="regUser" placeholder="用户名">
+            <input type="password" id="regPwd" placeholder="密码">
+            <input type="password" id="regPwdConfirm" placeholder="确认密码">
+            <div class="error-msg" id="regError"></div>
+            <button onclick="register()">注 册</button>
+            <a class="switch-mode" onclick="showForm('login')">已有账号？立即登录</a>
+        </div>
     </div>
 
+    <!-- 引入加密库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    
     <script>
-        function login() {
-            const user = document.getElementById("username").value;
-            const pwd = document.getElementById("password").value;
-            const errorMsg = document.getElementById("error-msg");
+        // 切换表单显示
+        function showForm(formType) {
+            document.getElementById('login-form').style.display = 
+                formType === 'login' ? 'block' : 'none';
+            document.getElementById('register-form').style.display = 
+                formType === 'register' ? 'block' : 'none';
+            clearErrors();
+        }
+
+        // 清空错误提示
+        function clearErrors() {
+            document.getElementById('loginError').innerText = '';
+            document.getElementById('regError').innerText = '';
+        }
+
+        // 密码加密（加盐）
+        function hashPassword(pwd) {
+            const salt = "ATK_" + new Date().getFullYear(); // 动态盐值
+            return CryptoJS.SHA256(salt + pwd).toString();
+        }
+
+        // 注册功能
+        function register() {
+            const user = document.getElementById('regUser').value.trim();
+            const pwd = document.getElementById('regPwd').value;
+            const pwdConfirm = document.getElementById('regPwdConfirm').value;
+            const errorEl = document.getElementById('regError');
             
-            // 简单验证（实际使用时建议加密）
-            if(user === "admin" && pwd === "123456") {
-                // 跳转到原子云（建议使用加密token）
-                window.location.href = "https://cloud.alientek.com/manage?page=device&from=gateway";
+            // 验证输入
+            if (!user || !pwd) {
+                errorEl.innerText = "用户名和密码不能为空";
+                return;
+            }
+            if (pwd !== pwdConfirm) {
+                errorEl.innerText = "两次密码输入不一致";
+                return;
+            }
+            if (localStorage.getItem('user_' + user)) {
+                errorEl.innerText = "用户名已存在";
+                return;
+            }
+
+            // 存储加密后的密码
+            localStorage.setItem('user_' + user, hashPassword(pwd));
+            
+            alert(`注册成功！\n用户名: ${user}`);
+            showForm('login');
+        }
+
+        // 登录功能
+        function login() {
+            const user = document.getElementById('loginUser').value.trim();
+            const pwd = document.getElementById('loginPwd').value;
+            const errorEl = document.getElementById('loginError');
+            const storedHash = localStorage.getItem('user_' + user);
+            
+            if (!storedHash) {
+                errorEl.innerText = "用户名不存在";
+                return;
+            }
+            
+            if (storedHash === hashPassword(pwd)) {
+                // 登录成功后跳转原子云
+                window.location.href = "https://cloud.alientek.com/manage?page=device";
             } else {
-                errorMsg.innerText = "用户名或密码错误！";
+                errorEl.innerText = "密码错误";
             }
         }
-        
-        // 回车键触发登录
-        document.getElementById("password").addEventListener("keyup", function(event) {
-            if (event.key === "Enter") {
-                login();
-            }
+
+        // 回车键快捷登录
+        document.getElementById('loginPwd').addEventListener('keyup', function(e) {
+            if (e.key === 'Enter') login();
+        });
+        document.getElementById('regPwdConfirm').addEventListener('keyup', function(e) {
+            if (e.key === 'Enter') register();
         });
     </script>
 </body>
