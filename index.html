@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>门禁系统安全登录</title>
+    <style>
+        body { 
+            font-family: Arial; 
+            background: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .login-box {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            width: 350px;
+            text-align: center;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background: #4285f4;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+        }
+        .logo {
+            width: 100px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-box">
+        <img src="https://via.placeholder.com/100x100?text=LOGO" class="logo" alt="公司Logo">
+        <h2>门禁管理系统</h2>
+        
+        <input type="text" id="username" placeholder="请输入用户名">
+        <input type="password" id="password" placeholder="请输入密码">
+        
+        <button onclick="login()">登 录</button>
+        
+        <p style="color:red; font-size:12px;" id="error-msg"></p>
+    </div>
+
+    <script>
+        function login() {
+            const user = document.getElementById("username").value;
+            const pwd = document.getElementById("password").value;
+            const errorMsg = document.getElementById("error-msg");
+            
+            // 简单验证（实际使用时建议加密）
+            if(user === "admin" && pwd === "123456") {
+                // 跳转到原子云（建议使用加密token）
+                window.location.href = "https://cloud.alientek.com/manage?page=device&from=gateway";
+            } else {
+                errorMsg.innerText = "用户名或密码错误！";
+            }
+        }
+        
+        // 回车键触发登录
+        document.getElementById("password").addEventListener("keyup", function(event) {
+            if (event.key === "Enter") {
+                login();
+            }
+        });
+    </script>
+</body>
+</html>
